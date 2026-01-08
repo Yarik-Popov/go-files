@@ -2,7 +2,6 @@ package src
 
 import (
 	"errors"
-	"fmt"
 	"io/fs"
 	"math/rand/v2"
 	"os"
@@ -73,7 +72,7 @@ func SafeMoveFile(config *Config, fileName string, oldFullPath string) error {
 		if attempt > 0 {
 			randomSuffix = "-" + strconv.FormatInt(rand.Int64(), 10)
 		}
-		newFullPath := filepath.Join(config.Destination, prefix, randomSuffix, extension)
+		newFullPath := filepath.Join(config.Destination, prefix+randomSuffix+extension)
 
 		newFileInfo, err := os.Stat(newFullPath)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
@@ -86,9 +85,8 @@ func SafeMoveFile(config *Config, fileName string, oldFullPath string) error {
 			continue
 		}
 
-		// err = os.Rename(oldFullPath, newFullPath)
-		// return err
-		fmt.Println("Moving from " + oldFullPath + " to " + newFullPath)
+		err = os.Rename(oldFullPath, newFullPath)
+		return err
 	}
 	return errors.New("Failed to move " + fileName + " after " + strconv.FormatUint(uint64(config.MaxAttempts), 10) + " max attempts")
 }
