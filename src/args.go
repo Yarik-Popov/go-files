@@ -21,6 +21,11 @@ func ParseArgs() (*Config, error) {
 		return nil, err
 	}
 
-	config := Config{Source: source, Destination: fullDstPath, Pattern: pattern}
+	config := Config{
+		Source:      source,
+		Destination: fullDstPath,
+		Pattern:     pattern,
+		MaxAttempts: 3,
+	}
 	return &config, nil
 }

@@ -4,8 +4,10 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"strconv"
 )
 
 /**
@@ -50,25 +52,43 @@ func OperateOnFiles(config *Config) error {
 			return nil
 		}
 
-		if matched, _ := filepath.Match(config.Pattern, d.Name()); !matched {
+		fileName := d.Name()
+		if matched, _ := filepath.Match(config.Pattern, fileName); !matched {
 			return nil
 		}
 
-		newFullPath := filepath.Join(config.Destination, d.Name())
+		return handleDuplicates(config, fileName, oldFullPath)
+	})
+	return err
+}
+
+func handleDuplicates(config *Config, fileName string, oldFullPath string) error {
+	attempt := 0
+	extension := filepath.Ext(fileName)
+	prefix := fileName[:len(fileName)-len(extension)]
+
+	for attempt < int(config.MaxAttempts) {
+		randomSuffix := ""
+		// Attempting to move the file previously would have resulted in overriding another file so we are retrying
+		if attempt > 0 {
+			randomSuffix = "-" + strconv.FormatInt(rand.Int64(), 10)
+		}
+		newFullPath := filepath.Join(config.Destination, prefix, randomSuffix, extension)
 
 		newFileInfo, err := os.Stat(newFullPath)
 		if err != nil && !errors.Is(err, os.ErrNotExist) {
 			return err
 		}
 
+		// File exists in Destination directory so don't move it as that would override the file. Try again
 		if newFileInfo != nil {
-			fmt.Println("We will handle the duplicate later")
+			attempt++
+			continue
 		}
 
 		// err = os.Rename(oldFullPath, newFullPath)
 		// return err
 		fmt.Println("Moving from " + oldFullPath + " to " + newFullPath)
-		return nil
-	})
-	return err
+	}
+	return nil
 }
