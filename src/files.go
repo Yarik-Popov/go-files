@@ -57,12 +57,12 @@ func OperateOnFiles(config *Config) error {
 			return nil
 		}
 
-		return handleDuplicates(config, fileName, oldFullPath)
+		return SafeMoveFile(config, fileName, oldFullPath)
 	})
 	return err
 }
 
-func handleDuplicates(config *Config, fileName string, oldFullPath string) error {
+func SafeMoveFile(config *Config, fileName string, oldFullPath string) error {
 	attempt := 0
 	extension := filepath.Ext(fileName)
 	prefix := fileName[:len(fileName)-len(extension)]
@@ -90,5 +90,5 @@ func handleDuplicates(config *Config, fileName string, oldFullPath string) error
 		// return err
 		fmt.Println("Moving from " + oldFullPath + " to " + newFullPath)
 	}
-	return nil
+	return errors.New("Failed to move " + fileName + " after " + strconv.FormatUint(uint64(config.MaxAttempts), 10) + " max attempts")
 }
