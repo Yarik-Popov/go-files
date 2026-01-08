@@ -3,26 +3,24 @@ package main
 import (
 	"Yarik-Popov/go-files/src"
 	"fmt"
-	"os"
+	"log"
 )
 
 func main() {
 	fmt.Println("Go files")
-
-	args := os.Args[1:]
-
-	if len(args) != 2 {
-		fmt.Println("You must use 2 arguments. src dst")
-		os.Exit(1)
+	config, err := src.ParseArgs()
+	if err != nil {
+		log.Fatal(err)
 	}
 
-	source := args[0]
-	destination := args[1]
-
-	fullDst, err := files.InitDestinationDir(destination)
-	fmt.Printf("src: %s, dst: %s \n", source, fullDst)
+	err = src.InitDestinationDir(config.Destination)
+	fmt.Printf("src: %s, dst: %s, pattern: %s \n", config.Source, config.Destination, config.Pattern)
 	if err != nil {
-		fmt.Println(err)
-		os.Exit(2)
+		log.Fatal(err)
+	}
+
+	err = src.OperateOnFiles(config)
+	if err != nil {
+		log.Fatal(err)
 	}
 }
